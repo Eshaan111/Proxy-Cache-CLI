@@ -1,0 +1,29 @@
+{
+  "name": "proxy-cache-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eshaan111/Proxy-Cache-CLI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Eshaan111/Proxy-Cache-CLI/issues"
+  },
+  "homepage": "https://github.com/Eshaan111/Proxy-Cache-CLI#readme",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "http": "^0.0.1-security",
+    "nanoid": "^5.1.6",
+    "net": "^1.0.2",
+    "nodemon": "^3.1.14",
+    "url": "^0.11.4"
+  }
+}
