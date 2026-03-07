@@ -1,9 +1,10 @@
 const http = require('http')
 const net = require('net')
 const url = require('url')
+const {addToCache,getFromCache,deleteFromCache,seeCache} = require('./controllers/redis.js')
 
 
-const ParseIncomingRequest = (clientReq, clientRes) => {
+const ParseIncomingRequest = async (clientReq, clientRes) => {
 
     let reqToFulfill = url.parse(clientReq.url);
 
@@ -14,23 +15,39 @@ const ParseIncomingRequest = (clientReq, clientRes) => {
         port: reqToFulfill.port || 80,
         path: reqToFulfill.path,
     }
-
-    makeExternalReqeust(clientReq, clientRes, options)
+    let req_url = `htpp://${options.host}:${options.port}/${options.path}`
+    let response =  await getFromCache(req_url)
+    // console.log(response)
+    
+    if(response){
+        console.log(response)
+        return
+    }
+    else{
+        makeExternalReqeust(clientReq, clientRes, options)
+    }
+   
 
 }
 
-const makeExternalReqeust = (clientReq, clientRes, options) => {
+const makeExternalReqeust = async (clientReq, clientRes, options) => {
     externalReq = http.request(options, (externalRes) => {
-
+        const chunks = [];
         clientRes.writeHead(externalRes.statusCode, externalRes.headers)
 
         externalRes.on('data', (chunk) => {
             clientRes.write(chunk);
+            chunks.push(chunk)
         })
 
 
         externalRes.on('end', () => {
             clientRes.end();
+            const data = Buffer.concat(chunks).toString()
+            console.log('CHUNK TRANSER COMPLETE, CHACHING CHUNK ARRAY')
+            
+            addToCache(`htpp://${options.host}:${options.port}/${options.path}`,data)
+            
         })
 
     })
