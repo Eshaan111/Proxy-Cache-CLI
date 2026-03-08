@@ -1,9 +1,13 @@
-require('dotenv').config()
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') })
 const {Redis} = require('ioredis')
 const { resolve } = require('url')
 const token_upstash = process.env.UPSTASH_REDIS_REST_TOKEN
 
+
+console.log('HUHUHUHUHU', token_upstash)
 const cache = new Redis(`rediss://default:${token_upstash}@magical-beetle-47725.upstash.io:6379`)
+
+
 
 
 async function addToCache(url,response){
@@ -27,7 +31,7 @@ async function getFromCache(url){
             console.log(`CACHE: HIT : GET req for url: ${url} `)
             return(response)
         }
-        console.log(`CACHE: MISS : GET req for url: ${url} ===> ADDING TO CACHE`)
+        console.log(`CACHE: MISS : GET req for url: ${url}`)
         
         return(0,null);
     }

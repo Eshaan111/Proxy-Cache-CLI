@@ -1,26 +1,29 @@
+require('dotenv').config()
 const http = require('http')
 const net = require('net')
 const url = require('url')
-const {addToCache,getFromCache,deleteFromCache,seeCache} = require('./controllers/redis.js')
+const {addToCache,getFromCache,deleteFromCache,seeCache,cache} = require('./controllers/redis.js')
+const { start } = require('repl')
 
 
-const ParseIncomingRequest = async (clientReq, clientRes) => {
+const ParseIncomingRequest = (origin)=> async (clientReq, clientRes) => {
 
-    let reqToFulfill = url.parse(clientReq.url);
+    let originUrl = url.parse(origin);
+    // const originUrl = new URL(origin)
 
     let options = {
         method: clientReq.method,
         headers: clientReq.headers,
-        host: reqToFulfill.hostname,
-        port: reqToFulfill.port || 80,
-        path: reqToFulfill.path,
+        host: originUrl.hostname,
+        port: originUrl.port || 80,
+        path: originUrl.path,
     }
-    let req_url = `htpp://${options.host}:${options.port}/${options.path}`
-    let response =  await getFromCache(req_url)
+    let req_url = `http://${options.host}:${options.port}/${options.path}`
+    let cache_response =  await getFromCache(req_url,cache)
     // console.log(response)
     
-    if(response){
-        console.log(response)
+    if(cache_response){
+        console.log(cache_response)
         return
     }
     else{
@@ -46,7 +49,7 @@ const makeExternalReqeust = async (clientReq, clientRes, options) => {
             const data = Buffer.concat(chunks).toString()
             console.log('CHUNK TRANSER COMPLETE, CHACHING CHUNK ARRAY')
             
-            addToCache(`htpp://${options.host}:${options.port}/${options.path}`,data)
+            addToCache(`http://${options.host}:${options.port}/${options.path}`,data,cache)
             
         })
 
@@ -101,19 +104,25 @@ const handleConnect = (clientReq, clientSocket, head) => {
 
 }
 
+async function start_proxy(given_port,origin){
+    
+    const ProxyServer = http.createServer(ParseIncomingRequest(origin));
 
 
+    ProxyServer.on('connect', handleConnect)
 
-const ProxyServer = http.createServer(ParseIncomingRequest);
+    ProxyServer.on('error', (err) => {
+        console.error('Proxy server error:', err.message)
+    })
 
+    ProxyServer.listen(given_port, () => {
+        console.log(`Proxy started on port ${given_port}`)
+        console.log(`Forwarding to ${origin}`)
+    })
 
-ProxyServer.on('connect', handleConnect)
+    
+}
 
-ProxyServer.on('error', (err) => {
-    console.error('Proxy server error:', err.message)
-})
+// start_proxy(4000,'http://example.com')
 
-ProxyServer.listen(4998, () => {
-    console.log('PROXY SERVER STARTED ON PORT 4998')
-})
-
+module.exports = {start_proxy}
